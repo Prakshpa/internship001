@@ -94,7 +94,7 @@ function submitForm(e){
         if(male.checked || female.checked) genderErr="";
         else genderErr="Select your gender";
 /*Check Errors*/
-        if(nameErr || dobErr || addressErr || confirmErr || genderErr) e.preventDefault();
+        if(nameErr || dobErr || addressErr || confirmErr || genderErr || phoneErr) e.preventDefault();
         phoneMessage.innerHTML=phoneErr? `<br>${phoneErr}`:"";
         nameMessage.innerHTML=(nameErr=="")? "":`<br>${nameErr}`;
         dobMessage.innerHTML=(dobErr=="")? "":`<br>${dobErr}`;

@@ -30,16 +30,21 @@ class UserController extends Controller
     }
     function register(Request $request){
         $validated=$request->validate([
-            "fname"=>"required|string|max:20",
+            "fname"=>"required|string|max:20|min:2",
             "mname"=>"max:50",
             "lname"=>"required|string|max:20",
             "dob"=>"required|date",
             "phone"=>"required|size:10",
-            "address"=>"required|string|max:255",
+            "address"=>"required|string|max:255|min:3",
             "gender"=>"required|string|max:10",
-            "email"=>"required|email|max:100",
-            "password"=>"required|string|min:8",
-            "confirm"=>"required|string|min:8"
+            "email"=>"required|email|max:100|min:10",
+            "password"=>"required|string|min:8|regex:/^[a-zA-Z0-9_ !@#\$%\^\&\*.,\?]+$/",
+            "confirm"=>"required|string|min:8|regex:/^[a-zA-Z0-9_ !@#\$%\^\&\*.,\?]+$/"
+        ],[
+            "*.required"=>"This field is required",
+            "*.max"=>"The maximum length is exceed",
+            "*.min"=>"The minimum length is not reached",
+            "*.regex"=>"Only alphanumeric characters and `!@#$%^&*_.,? allowed"
         ]);
         $full_name="";
         $token=random_int(1000, 10000);
@@ -47,11 +52,11 @@ class UserController extends Controller
         try{
             if(isset($validated['mname']) && trim($validated['mname'])!="") $full_name="{$validated['fname']} {$validated['mname']} {$validated['lname']}";
             else $full_name="{$validated['fname']} {$validated['lname']}";
-            DB::insert("insert into users(`Full name`, `Date of Birth`, gender, `Mobile No`, Address,Email, Password, email_verified_at, remember_token, created_at, updated_at) values(?,?,?,?,?,?,?,?,?,?,?)",
-            [$full_name, $validated['dob'], $validated['gender'], $validated['phone'], $validated['address'], $validated['email'], $hash, now(), $token, now(), now()]);
+            DB::insert("insert into users(id, `Full name`, `Date of Birth`, gender, `Mobile No`, Address,Email, Password, email_verified_at, remember_token, created_at, updated_at) values(?,?,?,?,?,?,?,?,?,?,?,?)",
+            [uuid_create(),$full_name, $validated['dob'], $validated['gender'], $validated['phone'], $validated['address'], $validated['email'], $hash, now(), $token, now(), now()]);
             return "token: $token";
         }catch(Exception $e){
-            return "error: $e";
+            return $e;
         }
     }
 }

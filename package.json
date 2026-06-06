@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "start":"php artisan migrate && npm run dev"
+        "start":"php artisan migrate:refresh && npm run dev"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
