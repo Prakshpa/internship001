@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -15,18 +17,25 @@ class UserController extends Controller
     function login(Request $request){
         $validated=$request->validate([
             "email"=>"required|email|max:100",
-            "password"=>"required|string|max:255|min:8"
+            "password"=>"required|string|max:30|min:8"
         ]);
 
-        $users=DB::select("select * from users where email=?", [$validated['email']]);
-        if(count($users)>0){
-            if(password_verify($validated['password'], $users[0]->password)){
-                $token=random_int(1000, 10000);
-                DB::update("update users set remember_token=?, email_verified_at=? where email=? and password=?", 
-                [$token, now(), $validated['email'], $users[0]->password]);
-                return "token=$token";
-            }else return $validated['password'];
+        $users=User::where("email", $validated['email'])
+                    ->first();
+        // if(count($users)>0){
+        //     if(password_verify($validated['password'], $users[0]->password)){
+        //         $token=random_int(1000, 10000);
+        //         DB::update("update users set remember_token=?, email_verified_at=? where email=? and password=?", 
+        //         [$token, now(), $validated['email'], $users[0]->password]);
+        //         return "token=$token";
+        //     }else return $validated['password'];
+        // }
+        if($users){
+            if(password_verify($validated['password'], $users->password)) return "Login successful";
         }
+        throw ValidationException::withMessages([
+            'error'=>"Invalid email or password"
+        ]);
     }
     function register(Request $request){
         $validated=$request->validate([
@@ -47,16 +56,39 @@ class UserController extends Controller
             "*.regex"=>"Only alphanumeric characters and `!@#$%^&*_.,? allowed"
         ]);
         $full_name="";
-        $token=random_int(1000, 10000);
-        $hash=password_hash($validated['password'], PASSWORD_BCRYPT);
         try{
             if(isset($validated['mname']) && trim($validated['mname'])!="") $full_name="{$validated['fname']} {$validated['mname']} {$validated['lname']}";
             else $full_name="{$validated['fname']} {$validated['lname']}";
-            DB::insert("insert into users(id, `Full name`, `Date of Birth`, gender, `Mobile No`, Address,Email, Password, email_verified_at, remember_token, created_at, updated_at) values(?,?,?,?,?,?,?,?,?,?,?,?)",
-            [uuid_create(),$full_name, $validated['dob'], $validated['gender'], $validated['phone'], $validated['address'], $validated['email'], $hash, now(), $token, now(), now()]);
-            return "token: $token";
+            // DB::table('users')->insert([
+            //     "id"=>uuid_create(),
+            //     "Full Name"=>$full_name,
+            //     "Date of Birth"=>$validated['dob'],
+            //     "gender"=>$validated['gender'],
+            //     "Mobile No"=>$validated['phone'],
+            //     "Address"=>$validated['address'],
+            //     "Email"=>$validated['email'],
+            //     "Password"=>$validated['password']
+            // ]);
+            User::create([
+                "Full Name"=>$full_name,
+                "Date of Birth"=>$validated['dob'],
+                "Gender"=>$validated['gender'],
+                "Mobile No"=>$validated['phone'],
+                "Address"=>$validated['address'],
+                "Email"=>$validated['email'],
+                "password"=>bcrypt($validated['password'])
+            ]);
+            return "Registration successful";
         }catch(Exception $e){
-            return $e;
+            if(strpos($e->getMessage(), "Duplicate entry")){
+                throw ValidationException::withMessages([
+                    'error'=>"Duplicate email address"
+                ]);
+            }else{
+                throw ValidationException::withMessages([
+                    'error'=>"An error occured while registration"
+                ]);
+            }
         }
     }
 }
