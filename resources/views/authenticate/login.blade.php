@@ -4,7 +4,7 @@
     @enderror
     <h1 class="text-center bg-orange-500 p-3 text-2xl min-w-150 rounded-t-xl">Login Form</h1>
     <div class="p-4 bg-orange-300 min-w-150 rounded-b-xl">
-        <form action="../in" class="justify-center items-center" method="post" id="form">
+        <form action="{{ route('login.attempt') }}" class="justify-center items-center" method="post" id="form">
             @csrf
             <table class="mt-4 table-fixed">
                 <tr class="m-5">

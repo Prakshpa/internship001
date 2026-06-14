@@ -2,17 +2,27 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\MemberController;
+use App\Http\Controllers\LoginController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\RegisterController;
+use Illuminate\Support\Facades\Session;
 
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get("/login", function(){
-    return view("authenticate.login");
-});
-Route::get("/register", function(){
-    return view("authenticate.register");
-});
-Route::get("users", [UserController::class, "users"]);
-Route::post("join", [UserController::class, "register"]);
-Route::post("in", [UserController::class, "login"]);
+Route::view("login", "authenticate.login")->name('login');
+Route::view("register", "authenticate.register")->name('register');
+Route::get("users", [UserController::class, "users"])->name('users');
+Route::post("register", RegisterController::class)->name('register.attempt');
+Route::post("login", LoginController::class)
+        ->middleware("throttle:5,1")
+        ->name('login.attempt');
+Route::view('dashboard', 'dashboard')
+        ->middleware("auth")
+        ->name('dashboard');
+Route::post('logout',function(){
+    Auth::guard('web')->logout();
+    Session::invalidate();
+    Session::regenerateToken();
+    return redirect('../');
+})->name('logout');

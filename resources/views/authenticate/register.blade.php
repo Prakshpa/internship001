@@ -4,7 +4,7 @@
     @enderror
     <h1 class="text-center bg-orange-500 p-3 text-2xl min-w-screen sm:min-w-150 md:min-w-190 lg:min-w-250 rounded-t-xl">Registration Form</h1>
     <div class="px-4 py-1 bg-green-400 sm:min-w-150 md:min-w-190 lg:min-w-250 rounded-b-xl">
-        <form action="../join" method="POST" id="form">
+        <form action="{{ route('register.attempt') }}" method="POST" id="form">
             @csrf
             <fieldset class="border-1 border-white sm:max-w-140 md:max-w-180 lg:max-w-235">
                 <legend class="text-center text-lg">Personal Information</legend>
